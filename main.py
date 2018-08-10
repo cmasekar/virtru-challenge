@@ -1,9 +1,10 @@
 from selenium import webdriver
 import selenium_helpers
 
-outlook_email = "virtru-challenge@outlook.com"
-outlook_password = "!nsecur3Pa$$word"
-email_subject_name = "automated-emoji-test"
+OUTLOOK_EMAIL = "virtru-challenge@outlook.com"
+OUTLOOK_PASSWORD = "!nsecur3Pa$$word"
+EMAIL_SUBJECT_NAME = "automated-emoji-test"
+
 driver = webdriver.Firefox()
 driver.maximize_window()
 driver.get('https://outlook.live.com/owa/')
@@ -11,9 +12,6 @@ driver.get('https://outlook.live.com/owa/')
 email_content = 'Sed dignissim netus arcu id egestas ultricies lacus etiam libero mattis augue sit risus, neque magna 🍺🍒💍🏰🎻🐄🐩🕘🍥📊🏯📋💟🎦 mauris facilisis vestibulum eleifend 🔁🐅🎮🐘 nec 🕧🔯👪👸🍕🏆 sit lacus pulvinar quisque morbi maecenas 🌏👠🌐🎲 🍃👡📙💫👅💣 🔚🔞🐊🌗🐾📍🏤🎈💙 mattis suspendisse eu euismod 🍨🎻🍓🕘🏡📤👈🎊🍤📦. Sit ante maecenas pellentesque nibh dignissim amet eget sit sed nulla 🍢🔋🎾🎻🍆🌁🐹🎵🐗🔭 feugiat orci ipsum viverra sit orci condimentum ultricies leo diam orci et orci, nec quam blandit. 🍁🔴🏰🎤💵🌖📔🍤🍈👅👾📕👉🌑 🎿🌶🍒🍸🏧🔤🍸🌒👌🔎💓🍩📌💗 vestibulum vitae dui pellentesque lobortis et sit id pellentesque diam at 🌼👒🗽🎉🔞💒💃👋🌳📡🍋🕜🐭🌻 ipsum convallis dapibus urna faucibus integer cras 🐏🔨🐲🌗🕣👐💠 aenean sed molestie semper a aliquet magna interdum et luctus quis commodo, felis est porttitor commodo.'
 
 ms_doughboy_xpath = "//*[@class='o365cs-mfp-header']//div[@class='o365cs-mfp-doughboy-container']"
-
-secure_your_email_title = "//*[@class='login-message']/span[text()[contains(.,'Select your email')]]"
-send_me_a_verification_email_xpath = "//a[@class='btn btn-lg auth-choice-btn sendEmailButton']"
 
 
 def sign_in(email, password):
@@ -49,7 +47,6 @@ def open_latest_email_with_subject(subject):
         driver, email_with_subject_xpath, 15)
 
 
-
 def click_virtru_unlock_message_link():
 
     unlock_message_link_xpath = "//a[starts-with(@href, 'https://secure.virtru.com/start/?')][text()[contains(.,'Unlock Message')]]"
@@ -62,14 +59,13 @@ def send_verification_email(email):
     selenium_helpers.click_element_by_xpath(
         driver, verify_email_xpath, 12)
 
+    send_me_a_verification_email_xpath = "//a[@class='btn btn-lg auth-choice-btn sendEmailButton']"
     selenium_helpers.click_element_by_xpath(
         driver, send_me_a_verification_email_xpath, 10)
 
 
-
-
 def process_verification_email(email):
-	# refresh page to
+        # refresh page to
     driver.refresh()
     selenium_helpers.find_clickable_element_by_xpath(
         driver, ms_doughboy_xpath, 15)
@@ -88,28 +84,38 @@ def process_verification_email(email):
         driver, verify_me_link_xpath, 5)
 
 
-
 def assert_email_contents(expected_email_contents):
 
-        # ensure decrypt view has loaded
+    # ensure decrypt view has loaded
+    encrypted_email_reply_input_xpath = "//div[@id='click-into-reply-view']"
     selenium_helpers.find_clickable_element_by_xpath(
-        driver, "//div[@id='click-into-reply-view']", 5)
+        driver, encrypted_email_reply_input_xpath, 5)
 
     # get text from email body
+    encrypted_email_body_xpath = "//*[@id='tdf-body']"
     encryped_email_body = selenium_helpers.find_clickable_element_by_xpath(
-        driver, "//*[@id='tdf-body']", 5)
+        driver, encrypted_email_body_xpath, 5)
     actual_email_contents = encryped_email_body.text
     # assert email text equal to expected_email_contents
+    try:
+        assert expected_email_contents == actual_email_contents
+        print("Expected email contents are the same as actual email contents!")
+    except AssertionError:
+        print("Expected email contents are not the same as actual email contents! :(")
+        print("Expected email contents: " + expected_email_contents)
+        print("-------****-------")
+        print("Actual email contents: "+ actual_email_contents)
 
-    assert expected_email_contents == actual_email_contents
 
 
-sign_in(outlook_email, outlook_password)
-open_latest_email_with_subject("automated-emoji-test")
+
+sign_in(OUTLOOK_EMAIL, OUTLOOK_PASSWORD)
+open_latest_email_with_subject(EMAIL_SUBJECT_NAME)
 click_virtru_unlock_message_link()
 driver.switch_to.window(driver.window_handles[1])
-send_verification_email(outlook_email)
+send_verification_email(OUTLOOK_EMAIL)
 driver.switch_to.window(driver.window_handles[0])
-process_verification_email(outlook_email)
+process_verification_email(OUTLOOK_EMAIL)
 driver.switch_to.window(driver.window_handles[1])
 assert_email_contents(email_content)
+driver.close()
